@@ -99,7 +99,9 @@ export const boxes = {
         ]
     },
     "Cainhurst": {
-        "hunters": [],
+        "hunters": [
+            "Reiterpallasch"
+        ],
         "enemies": [
             "Bloodlicker",
             "Cain's Servant",

@@ -23,6 +23,7 @@ const defaultHunters = {
     "Chikage": true,
     "Rifle Spear": true,
     "Stake Drive": true,
+    "Reiterpallasch": false,
 }
 const defaultEnemies = {
     "Beast Patient (Female)": true,
