@@ -11,7 +11,8 @@ export default function ({children}) {
                     width: '100%',
                     position: 'relative',
                     top: 0,
-                    left: 0
+                    left: 0,
+                    flex: 1
                 }}
             >
                 {children}

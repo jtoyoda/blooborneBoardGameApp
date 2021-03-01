@@ -170,7 +170,6 @@ export function TileScene() {
             </Button>
         </View>
     )
-    console.log(height)
     return (
         <BackgroundImage>
             {height <= 700 ?
