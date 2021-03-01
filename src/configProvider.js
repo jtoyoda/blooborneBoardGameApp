@@ -1,7 +1,7 @@
 import * as React from "react";
 import {createContext, useContext, useEffect, useState} from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import {getRandom, shuffleArray} from "./randomNumberUtils";
+import {getRandom, getRandomInt, shuffleArray} from "./randomNumberUtils";
 
 const BBBG_PREFIX = 'BBBG_APP'
 
@@ -11,7 +11,7 @@ export const useConfig = () => useContext(ConfigContext);
 
 const defaultBoss = {name: '', box: ''}
 
-const defaultDeck = [
+const defaultEnemyDeck = [
     {
         title: 'BASIC',
         key: '1BASIC1'
@@ -38,6 +38,110 @@ const defaultDeck = [
     },
 ]
 
+const defaultTrapDeck = [
+    {
+        title: "NOTHING",
+        key: "NOTHING1",
+        description: ""
+    },
+    {
+        title: "NOTHING",
+        key: "NOTHING2",
+        description: ""
+    },
+    {
+        title: "NOTHING",
+        key: "NOTHING3",
+        description: ""
+    },
+    {
+        title: "NOTHING",
+        key: "NOTHING4",
+        description: ""
+    },
+    {
+        title: "NOTHING",
+        key: "NOTHING5",
+        description: ""
+    },
+    {
+        title: "NOTHING",
+        key: "NOTHING6",
+        description: ""
+    },
+    {
+        title: "NOTHING",
+        key: "NOTHING7",
+        description: ""
+    },
+    {
+        title: "NOTHING",
+        key: "NOTHING8",
+        description: ""
+    },
+    {
+        title: "NOTHING",
+        key: "NOTHING9",
+        description: ""
+    },
+    {
+        title: "NOTHING",
+        key: "NOTHING10",
+        description: ""
+    },
+    {
+        title: "AMBUSH",
+        key: "AMBUSH1",
+        description: "Spawn and Activate 1 TYPE 1 Enemy in the Hunter's Space"
+    },
+    {
+        title: "AMBUSH",
+        key: "AMBUSH2",
+        description: "Spawn and Activate 1 TYPE 2 Enemy in the Hunter's Space"
+    },
+    {
+        title: "AMBUSH",
+        key: "AMBUSH3",
+        description: "Spawn and Activate 1 TYPE 3 Enemy in the Hunter's Space"
+    },
+    {
+        title: "ARROW TRAP",
+        key: "ARROW TRAP1",
+        description: "Hunter must immediately Dodge (>>) or suffer 2 damage"
+    },
+    {
+        title: "ARROW TRAP",
+        key: "ARROW TRAP2",
+        description: "Hunter must immediately Dodge (>>) or suffer 2 damage"
+    },
+    {
+        title: "ARROW TRAP",
+        key: "ARROW TRAP3",
+        description: "Hunter must immediately Dodge (>>) or suffer 2 damage"
+    },
+    {
+        title: "GUILLOTINE",
+        key: "GUILLOTINE1",
+        description: "Place 1 Insight token in this space. Hunters entering this space must dodge (>) or suffer 3 damage"
+    },
+    {
+        title: "GUILLOTINE",
+        key: "GUILLOTINE2",
+        description: "Place 1 Insight token in this space. Hunters entering this space must dodge (>) or suffer 3 damage"
+    },
+    {
+        title: "EMPOWERED TRAP",
+        key: "EMPOWERED TRAP1",
+        description: "Place 1 Insight token in this space. Enemies deal +1 damage while on this tile."
+    },
+    {
+        title: "EMPOWERED TRAP",
+        key: "EMPOWERED TRAP2",
+        description: "Place 1 Insight token in this space. Enemies deal +1 damage while on this tile."
+    },
+]
+
+
 const defaultTileDeckState = {
     tileCount: 0,
     dialogTileNumber: undefined,
@@ -53,7 +157,6 @@ export const ConfigContextProvider = ({children}) => {
     const [chaliceRiteCount, setChaliceRiteCount] = useState(0)
     const [boss, setBoss] = useState(defaultBoss)
     const [enemyDeckState, setEnemyDeckState] = React.useState(undefined);
-
     const [tileDeckState, setTileDeckState] = React.useState(undefined);
 
     const resetHunterList = () => {
@@ -77,7 +180,7 @@ export const ConfigContextProvider = ({children}) => {
             return {
                 ...prevState,
                 drawnCards: [],
-                deck: [...shuffleArray(defaultDeck)],
+                deck: [...shuffleArray(defaultEnemyDeck)],
             }
         })
     }
@@ -86,7 +189,7 @@ export const ConfigContextProvider = ({children}) => {
         let deck = enemyDeckState.deck
         let shuffled = false
         if (deck.length <= 0) {
-            deck = shuffleArray(defaultDeck)
+            deck = shuffleArray(defaultEnemyDeck)
             shuffled = true
         }
         const drawnCard = getRandom(deck)
@@ -105,8 +208,30 @@ export const ConfigContextProvider = ({children}) => {
         setEnemyDeckState(
             {
                 drawnCards: [],
-                deck: [...shuffleArray(defaultDeck)],
+                deck: [...shuffleArray(defaultEnemyDeck)],
                 dialogCard: undefined,
+            }
+        )
+    }
+
+    const drawTile = () => {
+        let deck = tileDeckState.deck
+        let shuffled = false
+        if (deck.length <= 0) {
+            deck = shuffleArray(defaultTrapDeck)
+            shuffled = true
+        }
+        const drawnCard = getRandom(deck)
+        const drawnCards = shuffled ? [drawnCard] : [...tileDeckState.drawnCards, drawnCard]
+        const postDrawDeck = deck.filter(it => it.key !== drawnCard.key)
+        setTileDeckState(prevState => {
+                return {
+                    ...prevState,
+                    dialogTileNumber: getRandomInt(1, prevState.tileCount),
+                    drawnCards,
+                    deck: postDrawDeck,
+                    dialogCard: drawnCard
+                }
             }
         )
     }
@@ -116,6 +241,9 @@ export const ConfigContextProvider = ({children}) => {
             setTileDeckState({
                 ...defaultTileDeckState,
                 tileCount: hunterList.length + 6,
+                drawnCards: [],
+                deck: [...shuffleArray(defaultTrapDeck)],
+                dialogCard: undefined,
             })
 
         } else {
@@ -219,7 +347,8 @@ export const ConfigContextProvider = ({children}) => {
             resetEnemyCardDeck,
             resetTileDeck,
             shuffleEnemyDeck,
-            drawEnemyDeckCard
+            drawEnemyDeckCard,
+            drawTile,
         }}>
             {children}
         </ConfigContext.Provider>

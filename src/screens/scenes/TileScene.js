@@ -1,23 +1,19 @@
-import {StyleSheet, View} from "react-native";
+import {ScrollView, StyleSheet, View} from "react-native";
 import * as React from "react";
 import BackgroundImage from "../../components/BackgroundImage";
-import {getRandomInt,} from "../../randomNumberUtils";
-import {Button, Card, Dialog, Portal, Subheading, Title, useTheme} from "react-native-paper";
+import {Button, Card, Dialog, Divider, Paragraph, Portal, Subheading, Title, useTheme} from "react-native-paper";
 import {useConfig} from "../../configProvider";
+import useWindowDimensions from "../../windowHeight";
 
 export function TileScene() {
-    const {boss, tileDeckState: state, setTileDeckState: setState} = useConfig()
+    const {
+        boss,
+        tileDeckState: state,
+        setTileDeckState: setState,
+        drawTile
+    } = useConfig()
     const theme = useTheme()
-
-    const drawTile = () => {
-        setState(prevState => {
-                return {
-                    ...prevState,
-                    dialogTileNumber: getRandomInt(1, prevState.tileCount)
-                }
-            }
-        )
-    }
+    const {height} = useWindowDimensions()
 
     const flipArenaLever = () => {
         setState(prevState => {
@@ -85,69 +81,113 @@ export function TileScene() {
     const canBeOther = () => {
         return state.tileCount > 2 - state.arenaLeversFound + (state.arenaGateFound ? 0 : 1)
     }
-
     const arenaAvailable = state.arenaGateFound && state.arenaLeversFlipped >= 2
+    const tilesDrawnCard = (
+        <Card style={styles.cardsDrawnTile}>
+            <Title>{`Tiles Remaining: ${state.tileCount}`}</Title>
+            <Subheading>{`Arena Gate ${state.arenaGateFound ? 'Found!' : 'Not Found'}`}</Subheading>
+            <Subheading>{`Arena Levers Found: ${state.arenaLeversFound}`}</Subheading>
+            <Subheading>{`Arena Levers Flipped: ${state.arenaLeversFlipped}`}</Subheading>
+            <Title>Tile Odds</Title>
+            {state.arenaLeversFound < 2 ?
+                <Subheading>{`Arena Lever: ${((2 - state.arenaLeversFound) / state.tileCount * 100).toPrecision(4)}%`}</Subheading>
+                :
+                <Subheading>All Arena Levers Found</Subheading>
+            }
+            {state.arenaGateFound ?
+                <Subheading>Arena Gate Found</Subheading>
+                :
+                <Subheading>{`Arena Gate: ${(1 / state.tileCount * 100).toPrecision(4)}%`}</Subheading>
+
+            }
+        </Card>
+    )
+    const trapCardsCard = (
+        <Card style={styles.cardsDrawnTrap}>
+            <Title>Trap Deck Odds</Title>
+            <Subheading>{`Nothing: ${
+                (state.deck.filter(card => card.title === 'NOTHING').length / state.deck.length * 100).toPrecision(4)
+            }%`}
+            </Subheading>
+            <Subheading>{`Ambush: ${
+                (state.deck.filter(card => card.title === 'AMBUSH').length / state.deck.length * 100).toPrecision(4)
+            }%`}
+            </Subheading>
+            <Subheading>{`Guillotine: ${
+                (state.deck.filter(card => card.title === 'GUILLOTINE').length / state.deck.length * 100).toPrecision(4)
+            }%`}
+            </Subheading>
+            <Subheading>{`Arrow Trap: ${
+                (state.deck.filter(card => card.title === 'ARROW TRAP').length / state.deck.length * 100).toPrecision(4)
+            }%`}
+            </Subheading>
+            <Subheading>{`Empowered Trap: ${
+                (state.deck.filter(card => card.title === 'EMPOWERED TRAP').length / state.deck.length * 100).toPrecision(4)
+            }%`}
+            </Subheading>
+        </Card>
+    )
+    const arenaAvailableCard = (
+        <Card style={styles.arenaAvailable}>
+            <Title>Arena {arenaAvailable ? 'Available!' : 'Unavailable'}</Title>
+            {state.revealBoss !== 'revealed' ?
+                <Button
+                    style={styles.importantButton}
+                    mode="contained"
+                    onPress={revealBoss}
+                    disabled={!arenaAvailable}
+                    color={theme.colors.accent}
+                >
+                    <Title>Reveal Boss</Title>
+
+                </Button>
+                :
+                <Subheading>The Boss is {boss.name}</Subheading>
+            }
+
+        </Card>
+    )
+    const buttons = (
+        <View style={styles.containerRow}>
+            <Button
+                style={[styles.button]}
+                mode="contained"
+                onPress={drawTile}
+                compact={true}
+                disabled={state.tileCount<=0}
+            >
+                Draw Tile
+            </Button>
+            <Button
+                style={[styles.button]}
+                mode="contained"
+                color={'#4F6272'}
+                disabled={state.arenaLeversFound <= 0 || state.arenaLeversFlipped >= state.arenaLeversFound}
+                onPress={flipArenaLever}
+                compact={true}
+            >
+                Flip Arena Lever
+            </Button>
+        </View>
+    )
+    console.log(height)
     return (
         <BackgroundImage>
-            <View style={styles.container}>
-                <Card style={styles.cardsDrawn}>
-                    <Title>{`Tiles Remaining: ${state.tileCount}`}</Title>
-                    <Subheading>{`Arena Gate ${state.arenaGateFound ? 'Found!' : 'Not Found'}`}</Subheading>
-                    <Subheading>{`Arena Levers Found: ${state.arenaLeversFound}`}</Subheading>
-                    <Subheading>{`Arena Levers Flipped: ${state.arenaLeversFlipped}`}</Subheading>
-                </Card>
-                <Card style={styles.cardsDrawn}>
-                    <Title>Odds</Title>
-                    {state.arenaLeversFound < 2 ?
-                        <Subheading>{`Arena Lever Odds: ${((2 - state.arenaLeversFound) / state.tileCount * 100).toPrecision(4)}%`}</Subheading>
-                        :
-                        <Subheading>All Arena Levers Found</Subheading>
-                    }
-                    {state.arenaGateFound ?
-                        <Subheading>Arena Gate Found</Subheading>
-                        :
-                        <Subheading>{`Arena Gate Odds: ${(1 / state.tileCount * 100).toPrecision(4)}%`}</Subheading>
-
-                    }
-                </Card>
-                <Card style={styles.cardsDrawn}>
-                    <Title>Arena {arenaAvailable ? 'Available!' : 'Unavailable'}</Title>
-                    {state.revealBoss !== 'revealed' ?
-                        <Button
-                            style={styles.importantButton}
-                            mode="contained"
-                            onPress={revealBoss}
-                            disabled={!arenaAvailable}
-                            color={theme.colors.accent}
-                        >
-                            <Title>Reveal Boss</Title>
-
-                        </Button>
-                        :
-                        <Subheading>The Boss is {boss.name}</Subheading>
-                    }
-
-                </Card>
-                <View style={styles.containerRow}>
-                    <Button
-                        style={[styles.button]}
-                        mode="contained"
-                        onPress={drawTile}
-                    >
-                        Draw Tile
-                    </Button>
-                    <Button
-                        style={[styles.button]}
-                        mode="contained"
-                        color={'#4F6272'}
-                        disabled={state.arenaLeversFound <= 0 || state.arenaLeversFlipped >= state.arenaLeversFound}
-                        onPress={flipArenaLever}
-                    >
-                        Flip Arena Lever
-                    </Button>
+            {height <= 700 ?
+                <ScrollView style={styles.scrollContainer}>
+                    {tilesDrawnCard}
+                    {trapCardsCard}
+                    {arenaAvailableCard}
+                    {buttons}
+                </ScrollView>
+                :
+                <View style={styles.container}>
+                    {tilesDrawnCard}
+                    {trapCardsCard}
+                    {arenaAvailableCard}
+                    {buttons}
                 </View>
-
-            </View>
+            }
             <Portal>
                 <Dialog
                     onDismiss={closeDialog}
@@ -157,6 +197,13 @@ export function TileScene() {
                         <Title>
                             Draw Tile {state.dialogTileNumber}
                         </Title>
+                        <Divider/>
+                        <Subheading>
+                            Drawn Trap Card: {state.dialogCard && state.dialogCard.title}
+                        </Subheading>
+                        <Paragraph>
+                            {state.dialogCard && state.dialogCard.description}
+                        </Paragraph>
                     </Dialog.Content>
                     <Dialog.Actions>
                         <Button disabled={state.arenaGateFound} mode="outlined" style={styles.dialogButton}
@@ -206,13 +253,29 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'space-between'
     },
+    scrollContainer: {
+        flex: 1,
+    },
     containerRow: {
         flexDirection: 'row',
         justifyContent: 'space-between'
     },
-    cardsDrawn: {
-        flex: 1,
-        margin: 12,
+    arenaAvailable: {
+        flex: 3,
+        marginHorizontal: 12,
+        marginVertical: 6,
+        paddingLeft: 12,
+    },
+    cardsDrawnTile: {
+        flex: 6,
+        marginHorizontal: 12,
+        marginVertical: 6,
+        paddingLeft: 12,
+    },
+    cardsDrawnTrap: {
+        flex: 5,
+        marginHorizontal: 12,
+        marginVertical: 6,
         paddingLeft: 12,
     },
     button: {

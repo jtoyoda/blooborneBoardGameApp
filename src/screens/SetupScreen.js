@@ -7,7 +7,7 @@ import {boxes} from "../boxInfo";
 import {Button, Card} from "react-native-paper";
 
 export function SetupScreen({navigation}) {
-    const {hunterList, enemyList, chaliceRiteCount, resetEnemyCardDeck, resetTileDeck} = useConfig()
+    const {hunterList, enemyList, chaliceRiteCount, resetEnemyCardDeck, resetTileDeck, resetTrapCardDeck} = useConfig()
     const generateBoxRequirements = (boxName) => {
         const box = boxes[boxName]
         const miscellaneous = box.miscellaneous.map(it => it)

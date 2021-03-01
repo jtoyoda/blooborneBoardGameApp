@@ -1,8 +1,9 @@
 import {StyleSheet, View} from "react-native";
 import * as React from "react";
 import BackgroundImage from "../../components/BackgroundImage";
-import {Button, Card, Dialog, Portal, Subheading, Title} from "react-native-paper";
+import {Button, Card, Dialog, Paragraph, Portal, Subheading, Title} from "react-native-paper";
 import {useConfig} from "../../configProvider";
+import useWindowDimensions from "../../windowHeight";
 
 export function EnemyCardScene() {
     const {
@@ -11,11 +12,18 @@ export function EnemyCardScene() {
         shuffleEnemyDeck: shuffleDeck,
         drawEnemyDeckCard: drawCard
     } = useConfig()
+    const {height} = useWindowDimensions()
 
     function createCardItem(card) {
-        return (
-            <Subheading key={card.key}>{card.title}</Subheading>
-        )
+        if (height <= 600) {
+            return (
+                <Paragraph key={card.key}>{card.title}</Paragraph>
+            )
+        } else {
+            return (
+                <Subheading key={card.key}>{card.title}</Subheading>
+            )
+        }
     }
 
     const closeDialog = () => {
@@ -45,6 +53,7 @@ export function EnemyCardScene() {
                         style={[styles.button]}
                         mode="contained"
                         onPress={drawCard}
+                        compact={true}
                     >
                         Draw Card
                     </Button>
@@ -53,6 +62,7 @@ export function EnemyCardScene() {
                         mode="contained"
                         color={'#4F6272'}
                         onPress={shuffleDeck}
+                        compact={true}
                     >
                         Re-Shuffle Deck
                     </Button>
@@ -90,7 +100,8 @@ const styles = StyleSheet.create({
     },
     cardsDrawn: {
         flex: 1,
-        margin: 12,
+        marginHorizontal: 12,
+        marginVertical: 4,
         paddingLeft: 12,
     },
     button: {
